@@ -2,7 +2,7 @@ import { ArgumentMetadata, Injectable, PipeTransform } from '@nestjs/common';
 import { Serializer } from '../api/serializer';
 
 @Injectable()
-export class SerializePipe implements PipeTransform<any> {
+export class DeserializePipe implements PipeTransform<any> {
   constructor(private readonly schema) {}
 
   async transform(value: any, metadata: ArgumentMetadata) {

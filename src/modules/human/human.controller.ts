@@ -1,32 +1,34 @@
-import { Body, Controller, Get, Param, Post, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import { HumanService } from './human.service';
 import { Serializer } from './model/human.serializer';
-import { SerializePipe } from '../../pipes/serialize.pipe';
+import { DeserializePipe } from '../../pipes/deserialize.pipe';
 import { Human } from './model/human.entity';
 import { AccessControlGuard } from '../../guards/access-control/access-control.guard';
 import { Roles } from '../../decorators/roles/roles.decorator';
+import { SerializeInterceptor } from '../../interceptors/serialize/serialize.interceptor';
 
 @Controller('human')
 @UseGuards(AccessControlGuard)
+@UseInterceptors(new SerializeInterceptor('human', Serializer))
 export class HumanController {
   constructor(private readonly humanService: HumanService) {}
 
   @Post()
   @Roles('admin')
-  @UsePipes(new SerializePipe('human'), new ValidationPipe())
+  @UsePipes(new DeserializePipe('human'), new ValidationPipe())
   async create(@Body() human: Human) {
-    return Serializer.serializeAsync('human', await this.humanService.create(human));
+    return await this.humanService.create(human);
   }
 
   @Get()
   @Roles('user', 'admin')
   async findAll() {
-    return Serializer.serializeAsync('human', await this.humanService.findAll());
+    return await this.humanService.findAll();
   }
 
   @Get(':id')
   @Roles('user', 'admin')
   async findOne(@Param('id') id) {
-    return Serializer.serializeAsync('human', await this.humanService.findOne(id));
+    return await this.humanService.findOne(id);
   }
 }
